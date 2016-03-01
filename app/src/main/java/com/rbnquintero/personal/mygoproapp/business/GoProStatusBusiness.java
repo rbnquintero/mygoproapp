@@ -67,9 +67,11 @@ public class GoProStatusBusiness extends AsyncTask<String, Void, Map<String, Obj
             response.put(SUCCESS, true);
             response.put(STATUS, status);
         } catch (IOException e) {
-            Log.e(TAG, "Could not reach the camera", e);
+            Log.e(TAG, "Could not reach the camera");
+            Log.d(TAG, "Could not reach the camera", e);
         } catch (ParseException e) {
-            Log.e(TAG, "Could not parse the response", e);
+            Log.e(TAG, "Could not parse the response");
+            Log.d(TAG, "Could not parse the response", e);
         }
 
         return response;

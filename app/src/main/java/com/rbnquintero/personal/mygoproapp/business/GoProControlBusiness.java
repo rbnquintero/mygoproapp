@@ -27,6 +27,7 @@ public class GoProControlBusiness extends AsyncTask<String, Void, Map<String, Ob
 
     public static final String SHUTTER_ACTION = "shutter_action";
     public static final String INITIALIZE_CAMERA = "initialize_camera";
+    public static final String TURN_OFF_CAMERA = "turn_off_camera";
 
     GoProStatusServiceNew statusServiceNew = new GoProStatusServiceNew();
     GoProControlServiceNew controlServiceNew = new GoProControlServiceNew();
@@ -48,6 +49,8 @@ public class GoProControlBusiness extends AsyncTask<String, Void, Map<String, Ob
             response.put(SUCCESS, true);
         } else if (INITIALIZE_CAMERA.equals(method)) {
             response = initializeCamera(params[1]);
+        } else if (TURN_OFF_CAMERA.equals(method)) {
+            response.put(SUCCESS, turnOffCamera());
         }
         return response;
     }
@@ -66,6 +69,8 @@ public class GoProControlBusiness extends AsyncTask<String, Void, Map<String, Ob
         response.put(METHOD, INITIALIZE_CAMERA);
         try {
             statusServiceNew.getStatus();
+            response.put(SUCCESS, true);
+            Log.i(TAG, "Camera on");
         } catch (IOException e) {
             Log.d(TAG, "Camera unreachable");
             boolean result = wakeUpServiceNew.wakeUpCamera(macAddress);
@@ -89,6 +94,18 @@ public class GoProControlBusiness extends AsyncTask<String, Void, Map<String, Ob
             }
         } catch (Exception e) {
             Log.e(TAG, "Could not obtain GoPro status");
+            Log.d(TAG, "Could not obtain GoPro status", e);
         }
+    }
+
+    private boolean turnOffCamera() {
+        try {
+            controlServiceNew.turnOffCamera();
+            Log.i(TAG, "Camera off");
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Could not turn off camera", e);
+        }
+        return false;
     }
 }

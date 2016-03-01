@@ -1,11 +1,6 @@
 package com.rbnquintero.personal.mygoproapp.service;
 
-import com.rbnquintero.personal.mygoproapp.objects.GoProStatus;
 import com.rbnquintero.personal.mygoproapp.utils.RESTUtil;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 

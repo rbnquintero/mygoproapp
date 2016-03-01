@@ -3,7 +3,6 @@ package com.rbnquintero.personal.mygoproapp.service;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.rbnquintero.personal.mygoproapp.objects.GoProStatus;
 import com.rbnquintero.personal.mygoproapp.utils.RESTUtil;
 
 /**

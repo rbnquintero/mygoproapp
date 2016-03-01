@@ -3,8 +3,6 @@ package com.rbnquintero.personal.mygoproapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -14,34 +12,28 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.rbnquintero.personal.mygoproapp.adapters.GoProSectionsPageAdapter;
 import com.rbnquintero.personal.mygoproapp.business.GoProControlBusiness;
+import com.rbnquintero.personal.mygoproapp.business.GoProStatusBusiness;
 import com.rbnquintero.personal.mygoproapp.business.delegate.GoProControlBusinessDelegate;
+import com.rbnquintero.personal.mygoproapp.business.delegate.GoProStatusBusinessDelegate;
 import com.rbnquintero.personal.mygoproapp.objects.GoPro;
 import com.rbnquintero.personal.mygoproapp.objects.GoProStatus;
-import com.rbnquintero.personal.mygoproapp.service.GoProControlService;
 import com.rbnquintero.personal.mygoproapp.service.GoProDiscoveryService;
-import com.rbnquintero.personal.mygoproapp.service.GoProStatusService;
-import com.rbnquintero.personal.mygoproapp.service.GoProWakeUpService;
-import com.rbnquintero.personal.mygoproapp.service.delegate.GoProStatusServiceDelegate;
-import com.rbnquintero.personal.mygoproapp.service.delegate.GoProWakeUpServiceDelegate;
 
-public class GoProControlActivity extends AppCompatActivity implements GoProStatusServiceDelegate, GoProWakeUpServiceDelegate, GoProControlBusinessDelegate {
+public class GoProControlActivity extends AppCompatActivity implements GoProControlBusinessDelegate, GoProStatusBusinessDelegate {
     private String TAG = this.getClass().getSimpleName();
-    private boolean getStatus = false;
     public boolean cameraOn = true;
     public GoPro goPro;
 
     private GoProControlBusiness controlBusiness;
+    private GoProStatusBusiness statusBusiness;
 
     private GoProDiscoveryService discoveryService;
-    private GoProWakeUpService wakeUpService;
-    private GoProStatusService statusService;
-    private GoProControlService controlService;
+
     private final Handler handler = new Handler();
 
     /**
@@ -89,29 +81,83 @@ public class GoProControlActivity extends AppCompatActivity implements GoProStat
 
     }
 
-    public void initializeCamera() {
+    private void initializeCamera() {
+        controlBusiness = new GoProControlBusiness(this);
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "Checking if GoPro has finished connecting");
-                if (discoveryService.isGoProConnected(goPro)) {
-                    Log.i(TAG, "GoPro connected");
-                    getStatusInitial();
-                } else {
-                    Log.d(TAG, "Connecting");
-                    setTextConnecting();
-                }
-                if(cameraOn) {
-                    initializeCamera();
+                if (cameraOn) {
+                    if (discoveryService.isGoProConnected(goPro)) {
+                        Log.i(TAG, "GoPro connected");
+                        controlBusiness.execute(GoProControlBusiness.INITIALIZE_CAMERA, goPro.bssid);
+                    } else {
+                        Log.d(TAG, "Connecting");
+                        setTextConnecting();
+                        initializeCamera();
+                    }
                 }
             }
-        }, 5000);
+        }, 1000);
+    }
+
+    private void getStatus() {
+        statusBusiness = new GoProStatusBusiness(this);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (cameraOn) {
+                    statusBusiness.execute(GoProStatusBusiness.GET_STATUS);
+                    getStatus();
+                }
+            }
+        }, 2000);
     }
 
     public void shutterAction(View view) {
         Log.d(TAG, "Shutter action");
         controlBusiness = new GoProControlBusiness(this);
         controlBusiness.execute(GoProControlBusiness.SHUTTER_ACTION);
+    }
+
+    @Override
+    public void updateStatus(GoProStatus status) {
+        try {
+            Log.i(TAG, "Battery level: " + status.Battery());
+            TextView ctrl_batteryLevel = (TextView) findViewById(R.id.ctrl_batteryLevel);
+            ctrl_batteryLevel.setText("Mode: " + status.Mode() + " - " + status.SubMode() + " | Battery: " + status.Battery() + "%");
+        } catch (Exception e) {
+            Log.e(TAG, "Could not get status");
+            Log.d(TAG, "Could not get status", e);
+        }
+    }
+
+    @Override
+    public void onFinishingInitialization(boolean result) {
+        if (result) {
+            // start receiving status updates
+            getStatus();
+        } else {
+            // could not connect
+        }
+    }
+
+    private void setTextConnecting() {
+        TextView ctrl_batteryLevel = (TextView) findViewById(R.id.ctrl_batteryLevel);
+        ctrl_batteryLevel.setText("Connecting to camera");
+    }
+
+
+    // CONTROL FRAGMENT
+    public void turnOnOffCamera(View view) {
+        ToggleButton button = (ToggleButton) findViewById(R.id.ctrl_toggleButton);
+        controlBusiness = new GoProControlBusiness(this);
+        if (button.isChecked()) {
+            cameraOn = true;
+            initializeCamera();
+        } else {
+            cameraOn = false;
+            controlBusiness.execute(GoProControlBusiness.TURN_OFF_CAMERA);
+        }
     }
 
     @Override
@@ -134,81 +180,5 @@ public class GoProControlActivity extends AppCompatActivity implements GoProStat
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void updateStatus(GoProStatus status) {
-        try {
-            Log.d(TAG, "Battery level: " + status.Battery());
-            TextView ctrl_batteryLevel = (TextView) findViewById(R.id.ctrl_batteryLevel);
-            ctrl_batteryLevel.setText("Mode: " + status.Mode() + " - " + status.SubMode() + " | Battery: " + status.Battery() + "%");
-        } catch (Exception e) {
-            Log.e(TAG, "Could not get status");
-        }
-    }
-
-    @Override
-    public void updateStatusTimeout() {
-        Log.d(TAG, "Camera status timeout");
-        setTextConnecting();
-        if (getStatus = true) {
-            getStatus = false;
-            wakeUpCamera();
-        }
-    }
-
-    @Override
-    public void wakeUpSuccess() {
-        getStatus();
-    }
-
-    @Override
-    public void wakeUpError() {
-        Log.d(TAG, "Camera wakeup timeout");
-    }
-
-    private void wakeUpCamera() {
-        wakeUpService = new GoProWakeUpService(this);
-        wakeUpService.execute(goPro.bssid);
-    }
-
-    private void getStatus() {
-        Log.i(TAG, "Getting camera status");
-        statusService = new GoProStatusService(this);
-        statusService.execute();
-    }
-
-    private void getStatusInitial() {
-        getStatus = true;
-        statusService = new GoProStatusService(this);
-        statusService.execute("3000");
-    }
-
-    private void setTextConnecting() {
-        TextView ctrl_batteryLevel = (TextView) findViewById(R.id.ctrl_batteryLevel);
-        ctrl_batteryLevel.setText("Connecting to camera");
-    }
-
-
-    // CONTROL FRAGMENT
-    public void turnOnOffCamera(View view) {
-        ToggleButton button = (ToggleButton) findViewById(R.id.ctrl_toggleButton);
-        controlService = new GoProControlService();
-        if(button.isChecked()) {
-            cameraOn = true;
-            initializeCamera();
-        } else {
-            cameraOn = false;
-            controlService.execute(GoProControlService.TURNOFF_CAMERA);
-        }
-    }
-
-    @Override
-    public void onFinishingInitialization(boolean result) {
-        if(result) {
-            // start receiving status updates
-        } else {
-            // could not connect
-        }
     }
 }
