@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">My GoPro App</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_go_pro_control_old">GoProControlOld</string>
+    <string name="lobby_failLabel">No GoPro cameras detected</string>
+    <string name="lobby_searchingLabel">Searching for GoPro cameras</string>
+    <string name="lobby_title">List of GoPro cameras detected</string>
+    <string name="title_activity_activity_go_pro_add">ActivityGoProAdd</string>
+    <string name="add_cameradescription">camara gopro session con frame</string>
+    <string name="add_addButton">Add Camera</string>
+    <string name="add_passwordFieldHint">GoPro\'s password</string>
+    <string name="ctrl_loadingCamera">Connecting with camera</string>
+    <string name="ctrl_imageDescription">Streaming of camera</string>
+    <string name="null_text">---</string>
+    <string name="title_activity_go_pro_control">GoProControlActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
