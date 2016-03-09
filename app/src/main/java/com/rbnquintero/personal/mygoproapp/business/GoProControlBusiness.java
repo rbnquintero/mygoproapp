@@ -104,7 +104,8 @@ public class GoProControlBusiness extends AsyncTask<String, Void, Map<String, Ob
             Log.i(TAG, "Camera off");
             return true;
         } catch (IOException e) {
-            Log.e(TAG, "Could not turn off camera", e);
+            Log.e(TAG, "Could not turn off camera");
+            Log.d(TAG, "Could not turn off camera", e);
         }
         return false;
     }

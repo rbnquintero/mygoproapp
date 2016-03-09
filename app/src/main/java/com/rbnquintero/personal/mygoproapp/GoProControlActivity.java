@@ -24,6 +24,8 @@ import com.rbnquintero.personal.mygoproapp.objects.GoPro;
 import com.rbnquintero.personal.mygoproapp.objects.GoProStatus;
 import com.rbnquintero.personal.mygoproapp.service.GoProDiscoveryService;
 
+import java.util.List;
+
 public class GoProControlActivity extends AppCompatActivity implements GoProControlBusinessDelegate, GoProStatusBusinessDelegate {
     private String TAG = this.getClass().getSimpleName();
     public boolean cameraOn = true;
@@ -126,9 +128,15 @@ public class GoProControlActivity extends AppCompatActivity implements GoProCont
             TextView ctrl_batteryLevel = (TextView) findViewById(R.id.ctrl_batteryLevel);
             ctrl_batteryLevel.setText("Mode: " + status.Mode() + " - " + status.SubMode() + " | Battery: " + status.Battery() + "%");
         } catch (Exception e) {
+            setTextConnecting();
             Log.e(TAG, "Could not get status");
             Log.d(TAG, "Could not get status", e);
         }
+    }
+
+    @Override
+    public void updateMediaList(List<String> media) {
+        //TODO nothing
     }
 
     @Override

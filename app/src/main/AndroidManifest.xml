@@ -35,11 +35,6 @@
             android:name=".GoProControlActivity"
             android:label="@string/title_activity_go_pro_control"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 

@@ -9,10 +9,14 @@ import com.rbnquintero.personal.mygoproapp.service.GoProControlServiceNew;
 import com.rbnquintero.personal.mygoproapp.service.GoProStatusServiceNew;
 import com.rbnquintero.personal.mygoproapp.service.GoProWakeUpServiceNew;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +29,11 @@ public class GoProStatusBusiness extends AsyncTask<String, Void, Map<String, Obj
     public static final String SUCCESS = "success";
     public static final String METHOD = "method";
 
+    // Methods
     public static final String GET_STATUS = "get_status";
+    public static final String GET_MEDIA_LIST = "get_media_list";
+
+    // Returning objects
     public static final String STATUS = "status";
 
     GoProStatusServiceNew statusServiceNew = new GoProStatusServiceNew();
@@ -45,6 +53,9 @@ public class GoProStatusBusiness extends AsyncTask<String, Void, Map<String, Obj
         Log.d(TAG, method);
         if (GET_STATUS.equals(method)) {
             response = getGoProStatus();
+        } else if (GET_MEDIA_LIST.equals(method)) {
+            getMediaList();
+            response.put(SUCCESS, true);
         }
         return response;
     }
@@ -75,5 +86,30 @@ public class GoProStatusBusiness extends AsyncTask<String, Void, Map<String, Obj
         }
 
         return response;
+    }
+
+    private void getMediaList() {
+        try {
+            List<String> filesURL = new ArrayList<String>();
+            GoProStatusServiceNew statusServiceNew = new GoProStatusServiceNew();
+            JSONObject mediaListJSON = statusServiceNew.getMediaList();
+            JSONArray folders = (JSONArray) mediaListJSON.get("media");
+            for (Object obj : folders) {
+                JSONObject folder = (JSONObject) obj;
+                String folderStr = (String) folder.get("d");
+                JSONArray files = (JSONArray) folder.get("fs");
+                for (Object objF : files) {
+                    JSONObject file = (JSONObject) objF;
+                    filesURL.add(folderStr + "/" + file.get("n"));
+                }
+            }
+            delegate.updateMediaList(filesURL);
+        } catch (IOException e) {
+            Log.e(TAG, "Could not reach the camera");
+            Log.d(TAG, "Could not reach the camera", e);
+        } catch (ParseException e) {
+            Log.e(TAG, "Could not parse the response");
+            Log.d(TAG, "Could not parse the response", e);
+        }
     }
 }

@@ -68,7 +68,7 @@ public class GoProStatus {
     }
 
     public String Battery() {
-        return String.valueOf((long) this.getStatusItem(GoProStatus.InternalBatteryLevel) * 100 / 4);
+        return String.valueOf((long) this.getStatusItem(GoProStatus.InternalBatteryLevel + 1) * 100 / 4);
     }
 
     public static final String Xmode = "12";
